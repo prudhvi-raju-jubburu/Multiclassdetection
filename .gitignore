@@ -1,0 +1,8 @@
+# Ignore dataset and runs directory
+dataset/
+dataset_5class/
+runs/
+__pycache__/
+*.cache
+.ipynb_checkpoints/
+.env
