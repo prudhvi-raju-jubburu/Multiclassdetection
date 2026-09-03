@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Urban Object Detection | YOLOv8</title>
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Outfit:wght@500;600;700;800&display=swap" rel="stylesheet">
+    <!-- FontAwesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+    <div class="app-wrapper">
+        <!-- Top Navbar Header -->
+        <header class="navbar">
+            <div class="brand">
+                <div class="brand-icon">
+                    <i class="fa-solid fa-city"></i>
+                </div>
+                <div class="brand-text">
+                    <h1>Urban Object Detector</h1>
+                    <span class="subtitle">Multi-Class YOLOv8 Object Detection System</span>
+                </div>
+            </div>
+            <div class="navbar-badges">
+                <span class="badge badge-model"><i class="fa-solid fa-microchip"></i> YOLOv8 Architecture</span>
+                <span class="badge badge-classes"><i class="fa-solid fa-layer-group"></i> 10 Urban Classes</span>
+            </div>
+        </header>
+
+        <!-- Main Container -->
+        <main class="main-content">
+            <!-- Left Side: Controls & Upload -->
+            <section class="card panel-controls">
+                <h2 class="card-title"><i class="fa-solid fa-cloud-arrow-up"></i> Image Input</h2>
+                
+                <!-- Upload Dropzone -->
+                <div class="dropzone" id="dropzone">
+                    <input type="file" id="imageInput" accept="image/jpeg, image/png, image/webp" hidden>
+                    <div class="dropzone-content" id="dropzoneContent">
+                        <div class="upload-icon">
+                            <i class="fa-solid fa-images"></i>
+                        </div>
+                        <p class="dropzone-text">Drag & drop your urban image here</p>
+                        <p class="dropzone-sub">or <span class="btn-browse">browse files</span> from device</p>
+                        <span class="file-formats">Supports JPG, PNG, WEBP</span>
+                    </div>
+
+                    <!-- Image Preview Container -->
+                    <div class="preview-container hidden" id="previewContainer">
+                        <img id="imagePreview" src="" alt="Selected Preview">
+                        <button type="button" class="btn-remove" id="btnRemove" title="Remove image">
+                            <i class="fa-solid fa-xmark"></i>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Parameters Section -->
+                <div class="settings-group">
+                    <div class="setting-item">
+                        <div class="setting-label-row">
+                            <label for="confSlider"><i class="fa-solid fa-sliders"></i> Confidence Threshold</label>
+                            <span class="slider-val" id="confValue">0.25</span>
+                        </div>
+                        <input type="range" id="confSlider" min="0.10" max="0.90" step="0.05" value="0.25">
+                    </div>
+                </div>
+
+                <!-- Action Button -->
+                <button type="button" class="btn-primary" id="btnPredict" disabled>
+                    <span class="btn-text"><i class="fa-solid fa-bolt"></i> Run Detection</span>
+                    <div class="spinner hidden" id="btnSpinner"></div>
+                </button>
+
+                <!-- Quick Samples -->
+                <div class="samples-section">
+                    <h3><i class="fa-solid fa-wand-magic-sparkles"></i> Try Sample Urban Images</h3>
+                    <div class="samples-grid" id="samplesGrid">
+                        <!-- Dynamically populated sample thumbnails -->
+                        <div class="sample-skeleton"></div>
+                        <div class="sample-skeleton"></div>
+                        <div class="sample-skeleton"></div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Right Side: Detection Output & Results -->
+            <section class="card panel-results">
+                <div class="results-header">
+                    <h2 class="card-title"><i class="fa-solid fa-chart-pie"></i> Detection Analysis</h2>
+                    <div class="view-toggles" id="viewToggles">
+                        <button class="toggle-btn active" data-view="annotated"><i class="fa-solid fa-eye"></i> Annotated</button>
+                        <button class="toggle-btn" data-view="original"><i class="fa-solid fa-image"></i> Original</button>
+                    </div>
+                </div>
+
+                <!-- Image Output Canvas / Display -->
+                <div class="result-image-wrapper">
+                    <div class="placeholder-state" id="placeholderState">
+                        <i class="fa-solid fa-radar placeholder-icon"></i>
+                        <p>Upload an image and click <strong>Run Detection</strong> to analyze urban objects.</p>
+                    </div>
+
+                    <div class="output-container hidden" id="outputContainer">
+                        <img id="outputImage" src="" alt="YOLO Annotated Output">
+                    </div>
+                </div>
+
+                <!-- Detection Statistics & Summary -->
+                <div class="analysis-dashboard hidden" id="analysisDashboard">
+                    <div class="metrics-row">
+                        <div class="metric-card">
+                            <span class="metric-num" id="totalDetections">0</span>
+                            <span class="metric-label">Objects Detected</span>
+                        </div>
+                        <div class="metric-card">
+                            <span class="metric-num" id="uniqueClassesCount">0</span>
+                            <span class="metric-label">Object Classes</span>
+                        </div>
+                    </div>
+
+                    <!-- Class Breakdown Badges -->
+                    <div class="breakdown-section">
+                        <h3><i class="fa-solid fa-list-check"></i> Detected Categories</h3>
+                        <div class="class-badges" id="classBadges"></div>
+                    </div>
+
+                    <!-- Detailed Detections Table -->
+                    <div class="table-section">
+                        <h3><i class="fa-solid fa-table"></i> Detailed Predictions</h3>
+                        <div class="table-scroll">
+                            <table class="detections-table">
+                                <thead>
+                                    <tr>
+                                        <th>#</th>
+                                        <th>Class Label</th>
+                                        <th>Confidence</th>
+                                        <th>Bounding Box (X1, Y1, X2, Y2)</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="detectionsTableBody">
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </section>
+        </main>
+
+        <!-- Supported Classes Footer Banner -->
+        <footer class="supported-classes-bar">
+            <span>Supported Urban Classes:</span>
+            <div class="class-tags">
+                <span class="tag tag-person">Person</span>
+                <span class="tag tag-rider">Rider</span>
+                <span class="tag tag-car">Car</span>
+                <span class="tag tag-bus">Bus</span>
+                <span class="tag tag-truck">Truck</span>
+                <span class="tag tag-bike">Bike</span>
+                <span class="tag tag-motor">Motor</span>
+                <span class="tag tag-traffic-light">Traffic Light</span>
+                <span class="tag tag-traffic-sign">Traffic Sign</span>
+                <span class="tag tag-train">Train</span>
+            </div>
+        </footer>
+    </div>
+
+    <!-- Application JavaScript -->
+    <script src="{{ url_for('static', filename='app.js') }}"></script>
+</body>
+</html>

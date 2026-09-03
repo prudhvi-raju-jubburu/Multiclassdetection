@@ -30,7 +30,7 @@ print("\n" + "=" * 70)
 print("TRAINING COMPLETED")
 print("=" * 70)
 
-best_model_path = os.path.join(
+best_model_path = os.path.join(results.save_dir, "weights", "best.pt") if hasattr(results, "save_dir") else os.path.join(
     "runs",
     "detect",
     "runs",
@@ -42,11 +42,15 @@ best_model_path = os.path.join(
 print("Best model saved at:")
 print(best_model_path)
 
+if not os.path.exists(best_model_path):
+    print(f"Warning: {best_model_path} does not exist. Using yolov8n.pt as fallback.")
+    best_model_path = "yolov8n.pt"
+
 print("\n" + "=" * 70)
 print("FINAL MODEL PERFORMANCE")
 print("=" * 70)
 
-# Load the best model only if you want to perform additional validation
+# Load the best model for additional validation
 best_model = YOLO(best_model_path)
 
 metrics = best_model.val(

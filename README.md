@@ -18,10 +18,14 @@ Urban object detection is critical for autonomous driving, smart city surveillan
 ## 📁 Repository Structure
 ```text
 ├── Multi_Class_Urban_Object_Detection.ipynb  # Complete Jupyter / Google Colab Notebook
+├── app.py                                    # Flask Web Application backend
 ├── train.py                                  # Training and validation script
 ├── dataset.py                                # Script to download BDD100K dataset via kagglehub
 ├── create_small_dataset.py                   # Helper script to sample subsets for training/val
 ├── data.yaml                                 # YOLO dataset configuration
+├── templates/index.html                      # Modern HTML interface template
+├── static/style.css                          # Modern glassmorphism CSS stylesheet
+├── static/app.js                             # Interactive frontend JavaScript logic
 ├── requirements.txt                          # Project dependencies
 └── README.md                                 # Project documentation
 ```
@@ -47,5 +51,13 @@ python create_small_dataset.py
 python train.py
 ```
 
+### 4. Run Interactive Web UI
+Launch the Flask web interface to test image predictions:
+```bash
+python app.py
+```
+Open your browser at `http://127.0.0.1:5000` to upload images, adjust confidence thresholds, test sample urban images, and visualize detected objects with bounding boxes and classification breakdowns.
+
 ## 📊 Results & Visualization
 The model leverages YOLOv8 architecture fine-tuned for high efficiency on urban traffic scenes.
+
